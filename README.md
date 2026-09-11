@@ -156,3 +156,51 @@ report says so.
 ## License
 
 MIT
+
+---
+
+## Run it yourself
+
+```bash
+git clone https://github.com/hammas159/deep-research-agent
+cd deep-research-agent
+
+pip install -e .         # core has zero dependencies
+pytest -q                # 48 tests, no network, no API key, no model
+```
+
+Search and fetch are injected, so the whole agent runs against anything — Tavily, Brave,
+SerpAPI, or a local index:
+
+```python
+from research import ResearchAgent, Source
+
+def search(query, limit):  return my_search_api(query)[:limit]
+def fetch(url):            return Source(url=url, text=download(url))
+
+agent = ResearchAgent(search=search, fetch=fetch, min_authority=0.6)
+report = agent.run("What is inflation in Pakistan?")
+
+report.summary()    # independence ratio, dropped quotes, why it stopped
+report.disputed     # where sources conflict, with both figures and both citations
+report.findings     # where they agree, with confidence from corroboration
+```
+
+## Problems hit while building this
+
+**Consensus preferred the higher of two disagreeing sources.** Taking `ordered[n // 2]`
+as the median works on odd counts and silently picks the upper value on even ones — so
+with exactly two sources reporting 8.2% and 12.4%, the "consensus" was 12.4%. A bias
+dressed up as a tie-break, and the sort of thing that would never be noticed in a report.
+*Fixed* with `statistics.median`, which averages the middle pair, and that is now a test.
+
+**Counting sources was counting copies.** The first version reported "corroborated by 4
+sources" for a wire story that Reuters wrote and three other sites republished verbatim.
+The confidence figure was fabricated. *Fixed* by collapsing near-duplicates with hashed
+word-shingles **before** anything is counted, and by extracting claims from the group's
+representative only — extracting from every copy would manufacture exactly the
+corroboration deduplication just removed.
+
+**The planner only searched for confirmation.** Decomposing a question into sub-queries
+naturally produces queries that look for supporting evidence, which is how an agent
+concludes whatever it started with. *Fixed* by always appending a contrary query.
