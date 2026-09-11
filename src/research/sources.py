@@ -27,7 +27,7 @@ class Source:
     url: str
     title: str = ""
     text: str = ""
-    published: str = ""      # ISO date, when known
+    published: str = ""  # ISO date, when known
     fetched_at: float = 0.0
 
     @property
@@ -39,19 +39,31 @@ class Source:
 # Domain classes, coarse on purpose. A finer taxonomy would imply a precision this
 # heuristic does not have.
 _TIERS: list[tuple[float, str, tuple[str, ...]]] = [
-    (1.00, "primary_research", (".edu", "arxiv.org", "nature.com", "science.org",
-                                "pubmed.ncbi.nlm.nih.gov", "doi.org")),
-    (0.90, "official", (".gov", ".gov.pk", "who.int", "worldbank.org", "imf.org",
-                        "un.org")),
-    (0.75, "established_press", ("reuters.com", "apnews.com", "bbc.co.uk", "ft.com",
-                                 "economist.com", "dawn.com")),
+    (
+        1.00,
+        "primary_research",
+        (".edu", "arxiv.org", "nature.com", "science.org", "pubmed.ncbi.nlm.nih.gov", "doi.org"),
+    ),
+    (0.90, "official", (".gov", ".gov.pk", "who.int", "worldbank.org", "imf.org", "un.org")),
+    (
+        0.75,
+        "established_press",
+        ("reuters.com", "apnews.com", "bbc.co.uk", "ft.com", "economist.com", "dawn.com"),
+    ),
     (0.60, "reference", ("wikipedia.org", "britannica.com")),
     (0.55, "industry", (".org",)),
     (0.35, "commercial", (".com", ".net", ".io")),
 ]
 
-_LOW_SIGNAL = ("blogspot.", "wordpress.com", "medium.com", "substack.com",
-               "quora.com", "reddit.com", "pinterest.")
+_LOW_SIGNAL = (
+    "blogspot.",
+    "wordpress.com",
+    "medium.com",
+    "substack.com",
+    "quora.com",
+    "reddit.com",
+    "pinterest.",
+)
 
 
 def domain_authority(url: str) -> tuple[float, str]:
@@ -85,7 +97,11 @@ def shingles(text: str, size: int = 5) -> set[str]:
     """
     words = _WORD.findall(text.lower())
     if len(words) < size:
-        return {hashlib.blake2b(" ".join(words).encode(), digest_size=8).hexdigest()} if words else set()
+        return (
+            {hashlib.blake2b(" ".join(words).encode(), digest_size=8).hexdigest()}
+            if words
+            else set()
+        )
     return {
         hashlib.blake2b(" ".join(words[i : i + size]).encode(), digest_size=8).hexdigest()
         for i in range(len(words) - size + 1)
@@ -117,9 +133,7 @@ class SourceGroup:
         return {self.representative.domain} | {d.domain for d in self.duplicates}
 
 
-def deduplicate(
-    sources: list[Source], *, threshold: float = 0.6
-) -> list[SourceGroup]:
+def deduplicate(sources: list[Source], *, threshold: float = 0.6) -> list[SourceGroup]:
     """Collapse republished copies into single independent sources.
 
     The representative of a group is its **highest-authority** member, not the first
@@ -134,7 +148,7 @@ def deduplicate(
         profile = shingles(source.text)
         placed = False
 
-        for group, existing in zip(groups, profiles):
+        for group, existing in zip(groups, profiles, strict=False):
             if jaccard(profile, existing) >= threshold:
                 incoming_authority, incoming_class = domain_authority(source.url)
                 if incoming_authority > group.authority:
@@ -149,9 +163,13 @@ def deduplicate(
 
         if not placed:
             authority, authority_class = domain_authority(source.url)
-            groups.append(SourceGroup(
-                representative=source, authority=authority, authority_class=authority_class,
-            ))
+            groups.append(
+                SourceGroup(
+                    representative=source,
+                    authority=authority,
+                    authority_class=authority_class,
+                )
+            )
             profiles.append(profile)
 
     return groups
@@ -167,8 +185,6 @@ def independence(groups: list[SourceGroup]) -> dict:
     return {
         "documents": total_documents,
         "independent_sources": len(groups),
-        "independence_ratio": (
-            round(len(groups) / total_documents, 4) if total_documents else 0.0
-        ),
+        "independence_ratio": (round(len(groups) / total_documents, 4) if total_documents else 0.0),
         "distinct_domains": len({d for g in groups for d in g.domains}),
     }

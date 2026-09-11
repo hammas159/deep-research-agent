@@ -34,8 +34,8 @@ WIRE = (
 
 DOCS = {
     "https://reuters.com/a": WIRE,
-    "https://dawn.com/b": WIRE,                       # republished verbatim
-    "https://x.blogspot.com/c": WIRE,                 # republished verbatim
+    "https://dawn.com/b": WIRE,  # republished verbatim
+    "https://x.blogspot.com/c": WIRE,  # republished verbatim
     "https://worldbank.org/d": (
         "Inflation in Pakistan was 12.4 percent last year. "
         "Cotton output was 5.4 million bales this season."
@@ -68,9 +68,10 @@ class TestAuthority:
         assert domain_authority(url)[1] == expected_class
 
     def test_research_outranks_a_blog(self):
-        assert domain_authority("https://nature.com/x")[0] > domain_authority(
-            "https://x.wordpress.com/y"
-        )[0]
+        assert (
+            domain_authority("https://nature.com/x")[0]
+            > domain_authority("https://x.wordpress.com/y")[0]
+        )
 
     def test_an_unknown_domain_is_not_trusted_by_default(self):
         assert domain_authority("https://whatever.xyz/a")[0] <= 0.3
@@ -85,18 +86,22 @@ class TestDeduplication:
 
     def test_the_highest_authority_copy_represents_the_group(self):
         """The order results arrive in is not evidence about anything."""
-        groups = deduplicate([
-            Source(url="https://x.blogspot.com/c", text=WIRE),
-            Source(url="https://reuters.com/a", text=WIRE),
-        ])
+        groups = deduplicate(
+            [
+                Source(url="https://x.blogspot.com/c", text=WIRE),
+                Source(url="https://reuters.com/a", text=WIRE),
+            ]
+        )
         assert groups[0].representative.domain == "reuters.com"
         assert groups[0].copies == 2
 
     def test_genuinely_different_documents_stay_apart(self):
-        groups = deduplicate([
-            Source(url="https://a.com", text="Cotton output rose sharply this year."),
-            Source(url="https://b.com", text="Wheat prices fell across the province."),
-        ])
+        groups = deduplicate(
+            [
+                Source(url="https://a.com", text="Cotton output rose sharply this year."),
+                Source(url="https://b.com", text="Wheat prices fell across the province."),
+            ]
+        )
         assert len(groups) == 2
 
     def test_independence_ratio_makes_the_difference_visible(self):
@@ -160,9 +165,8 @@ class TestCorroboration:
 
     def test_disagreeing_sources_are_reported_as_disputed(self):
         """Most agents summarise the conflict away, and the conflict was the finding."""
-        claims = (
-            extract("Inflation in Pakistan was 8.2 percent.", source_url="a")
-            + extract("Inflation in Pakistan was 12.4 percent.", source_url="b")
+        claims = extract("Inflation in Pakistan was 8.2 percent.", source_url="a") + extract(
+            "Inflation in Pakistan was 12.4 percent.", source_url="b"
         )
         finding = corroborate(claims)[0]
         assert finding.contradiction
@@ -171,9 +175,8 @@ class TestCorroboration:
 
     def test_ordinary_measurement_variation_is_not_a_contradiction(self):
         """8.2% and 8.4% are corroborating each other."""
-        claims = (
-            extract("Inflation in Pakistan was 8.2 percent.", source_url="a")
-            + extract("Inflation in Pakistan was 8.4 percent.", source_url="b")
+        claims = extract("Inflation in Pakistan was 8.2 percent.", source_url="a") + extract(
+            "Inflation in Pakistan was 8.4 percent.", source_url="b"
         )
         assert not corroborate(claims)[0].contradiction
 
@@ -181,23 +184,24 @@ class TestCorroboration:
         """One wildly wrong figure should not drag the consensus toward itself — and
         on an even count, taking the upper middle value would silently prefer the
         higher of two disagreeing sources."""
-        claims = (
-            extract("Output was 8 million.", source_url="a")
-            + extract("Output was 12 million.", source_url="b")
+        claims = extract("Output was 8 million.", source_url="a") + extract(
+            "Output was 12 million.", source_url="b"
         )
         assert corroborate(claims)[0].consensus_value == 10_000_000.0
 
     def test_opposing_stances_contradict(self):
-        claims = (
-            extract("Vaccination is not associated with autism.", source_url="a")
-            + extract("Vaccination is associated with autism.", source_url="b")
+        claims = extract("Vaccination is not associated with autism.", source_url="a") + extract(
+            "Vaccination is associated with autism.", source_url="b"
         )
         assert corroborate(claims)[0].contradiction
 
     def test_one_source_is_never_well_corroborated(self):
-        assert corroborate(
-            extract("Cotton output was 5.5 million bales.", source_url="a")
-        )[0].confidence() == "single-source"
+        assert (
+            corroborate(extract("Cotton output was 5.5 million bales.", source_url="a"))[
+                0
+            ].confidence()
+            == "single-source"
+        )
 
     def test_contradictions_sort_first(self):
         claims = (
@@ -271,9 +275,7 @@ class TestAgent:
         """Research that cannot stop when it has enough is as broken as research that
         cannot stop at all."""
         report = agent(
-            budget_factory=lambda: Budget(
-                sufficient_findings=1, sufficient_independent_sources=2
-            )
+            budget_factory=lambda: Budget(sufficient_findings=1, sufficient_independent_sources=2)
         ).run("What is inflation in Pakistan?")
         assert report.stopped_because == "found enough corroborated evidence"
 

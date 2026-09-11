@@ -26,8 +26,8 @@ from .claims import Claim, Finding, corroborate, extract
 from .sources import Source, SourceGroup, deduplicate, domain_authority, independence
 
 # Injected, so the whole agent is testable without a network.
-SearchFn = Callable[[str, int], Sequence[str]]        # (query, limit) -> urls
-FetchFn = Callable[[str], Source]                     # url -> Source
+SearchFn = Callable[[str, int], Sequence[str]]  # (query, limit) -> urls
+FetchFn = Callable[[str], Source]  # url -> Source
 
 
 class BudgetExhausted(RuntimeError):
@@ -206,7 +206,11 @@ class ResearchAgent:
         return claims
 
     def _assemble(
-        self, question: str, sources: list[Source], budget: Budget, stopped: str,
+        self,
+        question: str,
+        sources: list[Source],
+        budget: Budget,
+        stopped: str,
         report: Report,
     ) -> Report:
         groups = deduplicate(sources, threshold=self.duplicate_threshold)

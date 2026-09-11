@@ -50,11 +50,27 @@ _AFFIRMATION = re.compile(
 )
 
 _UNIT_SCALE = {
-    "thousand": 1e3, "million": 1e6, "billion": 1e9, "trillion": 1e12,
+    "thousand": 1e3,
+    "million": 1e6,
+    "billion": 1e9,
+    "trillion": 1e12,
 }
 
-_STOPWORDS = {"the", "a", "an", "this", "that", "these", "those", "its", "their",
-              "his", "her", "it", "they"}
+_STOPWORDS = {
+    "the",
+    "a",
+    "an",
+    "this",
+    "that",
+    "these",
+    "those",
+    "its",
+    "their",
+    "his",
+    "her",
+    "it",
+    "they",
+}
 
 
 def _normalise_subject(text: str) -> str:
@@ -64,14 +80,14 @@ def _normalise_subject(text: str) -> str:
 
 @dataclass
 class Claim:
-    subject: str            # normalised, for matching
+    subject: str  # normalised, for matching
     raw_subject: str
-    kind: str               # "numeric" | "assertion"
+    kind: str  # "numeric" | "assertion"
     value: float | None = None
     unit: str = ""
     predicate: str = ""
     negated: bool = False
-    quote: str = ""         # the sentence it came from, verbatim
+    quote: str = ""  # the sentence it came from, verbatim
     source_url: str = ""
 
     @property
@@ -108,31 +124,49 @@ def extract(text: str, *, source_url: str = "") -> list[Claim]:
                 value = float(match.group("value").replace(",", ""))
             except ValueError:
                 continue
-            claims.append(Claim(
-                subject=subject, raw_subject=match.group("subject").strip(),
-                kind="numeric", value=value, unit=unit,
-                quote=sentence, source_url=source_url,
-            ))
+            claims.append(
+                Claim(
+                    subject=subject,
+                    raw_subject=match.group("subject").strip(),
+                    kind="numeric",
+                    value=value,
+                    unit=unit,
+                    quote=sentence,
+                    source_url=source_url,
+                )
+            )
 
         negated = _NEGATION.search(sentence)
         if negated:
             subject = _normalise_subject(negated.group("subject"))
             if subject:
-                claims.append(Claim(
-                    subject=subject, raw_subject=negated.group("subject").strip(),
-                    kind="assertion", predicate=negated.group("predicate").strip(),
-                    negated=True, quote=sentence, source_url=source_url,
-                ))
+                claims.append(
+                    Claim(
+                        subject=subject,
+                        raw_subject=negated.group("subject").strip(),
+                        kind="assertion",
+                        predicate=negated.group("predicate").strip(),
+                        negated=True,
+                        quote=sentence,
+                        source_url=source_url,
+                    )
+                )
         elif not _NUMERIC.search(sentence):
             affirmed = _AFFIRMATION.search(sentence)
             if affirmed:
                 subject = _normalise_subject(affirmed.group("subject"))
                 if subject:
-                    claims.append(Claim(
-                        subject=subject, raw_subject=affirmed.group("subject").strip(),
-                        kind="assertion", predicate=affirmed.group("predicate").strip(),
-                        negated=False, quote=sentence, source_url=source_url,
-                    ))
+                    claims.append(
+                        Claim(
+                            subject=subject,
+                            raw_subject=affirmed.group("subject").strip(),
+                            kind="assertion",
+                            predicate=affirmed.group("predicate").strip(),
+                            negated=False,
+                            quote=sentence,
+                            source_url=source_url,
+                        )
+                    )
 
     return claims
 
@@ -147,7 +181,7 @@ class Finding:
     claims: list[Claim] = field(default_factory=list)
     supporting_sources: set[str] = field(default_factory=set)
     contradiction: bool = False
-    spread: float | None = None       # numeric disagreement, as a fraction
+    spread: float | None = None  # numeric disagreement, as a fraction
     consensus_value: float | None = None
     unit: str = ""
 
@@ -190,9 +224,7 @@ class Finding:
         return out
 
 
-def corroborate(
-    claims: Sequence[Claim], *, numeric_tolerance: float = 0.10
-) -> list[Finding]:
+def corroborate(claims: Sequence[Claim], *, numeric_tolerance: float = 0.10) -> list[Finding]:
     """Group claims that are about the same thing, and flag where they disagree.
 
     `numeric_tolerance` is fractional. Two sources reporting 8.2% and 8.4% are
@@ -204,8 +236,7 @@ def corroborate(
     for claim in claims:
         finding = grouped.setdefault(
             claim.key,
-            Finding(key=claim.key, subject=claim.raw_subject, kind=claim.kind,
-                    unit=claim.unit),
+            Finding(key=claim.key, subject=claim.raw_subject, kind=claim.kind, unit=claim.unit),
         )
         finding.claims.append(claim)
         if claim.source_url:
@@ -213,8 +244,7 @@ def corroborate(
 
     for finding in grouped.values():
         if finding.kind == "numeric":
-            values = [c.comparable_value for c in finding.claims
-                      if c.comparable_value is not None]
+            values = [c.comparable_value for c in finding.claims if c.comparable_value is not None]
             if not values:
                 continue
             low, high = min(values), max(values)
