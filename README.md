@@ -1,4 +1,4 @@
-# deep-research-agent
+# deep-research-agent (Python, httpx, zero dependencies in core)
 
 [![ci](https://github.com/hammas159/deep-research-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/hammas159/deep-research-agent/actions/workflows/ci.yml)
 ![python](https://img.shields.io/badge/python-3.10%2B-blue)
