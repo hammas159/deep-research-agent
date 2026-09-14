@@ -1,19 +1,48 @@
-# deep-research-agent (Python, httpx, zero dependencies in core)
+<h1 align="center">deep-research-agent</h1>
+<p align="center"><i>A research agent that tells you when the sources disagree, instead of picking one</i></p>
 
-[![ci](https://github.com/hammas159/deep-research-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/hammas159/deep-research-agent/actions/workflows/ci.yml)
-![python](https://img.shields.io/badge/python-3.10%2B-blue)
-![dependencies](https://img.shields.io/badge/core-none-success)
-![license](https://img.shields.io/badge/license-MIT-green)
+<p align="center">
+  <a href="#three-things-most-research-agents-get-wrong">Three things</a> &middot;
+  <a href="#the-budget-is-outside-the-loop">The budget</a> &middot;
+  <a href="#source-authority">Source authority</a> &middot;
+  <a href="#usage">Usage</a> &middot;
+  <a href="#limits">Limits</a> &middot;
+  <a href="#problems-hit-while-building-this">Problems hit</a>
+</p>
 
-**A research agent that tells you when the sources disagree, instead of picking one.**
-
-`plan → search → fetch → deduplicate → corroborate → verify → report`, under a budget it
-cannot reason its way past. Core has zero dependencies; search and fetch are injected, so
-the whole thing is testable with no network and no model.
+<p align="center">
+  <a href="https://github.com/hammas159/deep-research-agent/actions/workflows/ci.yml"><img src="https://github.com/hammas159/deep-research-agent/actions/workflows/ci.yml/badge.svg" alt="ci"></a>
+  <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="python">
+  <img src="https://img.shields.io/badge/core%20deps-zero-success" alt="deps">
+  <img src="https://img.shields.io/badge/testable-no%20network%2C%20no%20model-informational" alt="tested">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="license"></a>
+</p>
 
 ---
 
 ## Three things most research agents get wrong
+
+```mermaid
+flowchart LR
+    P["plan"] --> S["search"]
+    S --> F["fetch"]
+    F --> D["deduplicate"]
+    D --> C["corroborate<br/>across sources"]
+    C --> V{"do the sources<br/>agree?"}
+    V -->|"yes"| R["report the finding"]
+    V -->|"no"| DIS["report the DISAGREEMENT"]
+    B["budget"] -.->|"enforced outside the loop"| S
+
+    style DIS fill:#f59e0b,color:#fff
+    style B fill:#dc2626,color:#fff
+```
+
+**The budget sits outside the loop**, so the agent cannot reason its way past it. And when
+sources conflict, the disagreement *is* the output - most research agents silently pick one.
+
+Search and fetch are injected, so the whole pipeline is testable **with no network and no
+model**.
+
 
 ### 1. Ten sources is not ten sources
 
@@ -152,6 +181,10 @@ report says so.
 - No synthesis prose. The report is structured findings with citations; turning that
   into readable narrative is a model's job, and it should be given *verified* findings
   rather than raw documents.
+
+## Keywords
+
+research agent &middot; deep research &middot; multi-source corroboration &middot; source conflict detection &middot; citation verification &middot; deduplication &middot; budget enforcement &middot; agent loops &middot; dependency injection &middot; testable agents &middot; httpx &middot; zero dependencies &middot; LLM agents &middot; information retrieval
 
 ## License
 
