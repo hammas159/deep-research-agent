@@ -13,6 +13,7 @@ Two failures that a research agent has to survive, shown together:
 No network, no model: the fetched pages are written here so deduplication
 and corroboration can be watched on their own.
 """
+
 import sys
 
 sys.path.insert(0, "src")
@@ -28,10 +29,7 @@ WIRE_REPRINT = (
     "Global installed solar capacity reached 2100 GW in 2024. "
     "Analysts expect continued growth through the decade. (Reuters)"
 )
-AGENCY = (
-    "Global installed solar capacity reached 2050 GW in 2024. "
-    "Growth was concentrated in Asia."
-)
+AGENCY = "Global installed solar capacity reached 2050 GW in 2024. Growth was concentrated in Asia."
 DISSENT = (
     "Global installed solar capacity reached 1600 GW in 2024. "
     "Earlier estimates overstated commissioning dates."
@@ -50,7 +48,7 @@ SOURCES = [
 ]
 
 print("INPUT")
-print(f"   question: how much solar capacity was installed globally by 2024?")
+print("   question: how much solar capacity was installed globally by 2024?")
 print(f"   {len(SOURCES)} fetched pages:")
 for s in SOURCES:
     print(f"      {s.domain:24} {s.text[:54]}...")
@@ -65,8 +63,10 @@ for g in groups:
     if g.duplicates:
         copies = ", ".join([g.representative.domain] + [d.domain for d in g.duplicates])
         print(f"      merged as one: {copies}  (same text, republished)")
-print(f"   independence ratio {ind['independence_ratio']:.0%}"
-      f"  ({ind['independent_sources']} of {ind['documents']} documents)")
+print(
+    f"   independence ratio {ind['independence_ratio']:.0%}"
+    f"  ({ind['independent_sources']} of {ind['documents']} documents)"
+)
 print()
 
 claims = []
@@ -80,8 +80,11 @@ for f in findings:
     flag = "DISAGREEMENT" if f.contradiction or (f.spread or 0) > 0.10 else "agreed"
     print(f"   {flag:14} {f.subject}")
     if f.consensus_value is not None:
-        print(f"      consensus   {f.consensus_value:g}   spread {f.spread:.1%}"
-              if f.spread is not None else f"      consensus   {f.consensus_value:g}")
+        print(
+            f"      consensus   {f.consensus_value:g}   spread {f.spread:.1%}"
+            if f.spread is not None
+            else f"      consensus   {f.consensus_value:g}"
+        )
     for c in f.claims:
         if c.value is not None:
             print(f"      {c.value:>8g} {c.unit:4} {c.source_url}")
