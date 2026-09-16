@@ -142,6 +142,28 @@ report.summary()
 Brave, SerpAPI or a local index — the agent does not know or care, which is why it can be
 tested exhaustively without one.
 
+---
+
+## Input
+
+![input](docs/images/input.png)
+
+## Output
+
+`python demo.py`
+
+![output](docs/images/output.png)
+
+*Two of the five pages are the same wire story. Counted naively that is three sites
+agreeing on 2100 GW; after deduplication it is one source, and the independence ratio
+drops to 80%.*
+
+*The 1600 GW figure is not dropped for being the minority view. The finding is returned
+as a disagreement with a 27% spread, because a user asking this question is far better
+served by "the sources do not agree" than by a confident single number.*
+
+---
+
 ## Source authority
 
 A coarse prior on reliability, from the domain: primary research → official → established
