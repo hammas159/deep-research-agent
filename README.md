@@ -1,4 +1,4 @@
-<h1 align="center">deep-research-agent</h1>
+<h1 align="center">deep-research-agent (Python · source dedup · claim verification)</h1>
 <p align="center"><i>A research agent that tells you when the sources disagree, instead of picking one</i></p>
 
 <p align="center">
